@@ -1,24 +1,56 @@
-SRCS				=		project/main.cFLAGS=-Wall -Wextra -Werror
-NAME				=		rush01
-CC					=		cc
-O					=		obj/
-RUSH_PATH			=		/tmp/rush-01/ex00
+T			:=	test/test.py
+S			:=	src/
+I			:=	header/
+O			:=	obj/
 
+NAME		:=	rush-01
+SRC			:=	$(addprefix $S, main.c)
+OBJ			:=	$(SRC:$S%.c=$O%.o)
 
-$O%.o: $(RUSH_PATH)%.c
-	@mkdir -p 
+LIBNAME		:=	librush-01.dylib
+LIBSRC		:=	$(addprefix $S, librush-01.c)
+LIBOBJ		:=	$(LIBSRC:$S%.c=$O%.o)
+LIBFLAGS	+=	-fPIC -shared
 
+CC			:=	cc
+
+CFLAGS		+=	-I$I
+CFLAGS		+=	-Wall -Wextra -Werror -MMD
+
+LDFLAGS		+=	-L.
+LDLIBS		+=	-lrush-01
+
+RM			:=	/bin/rm -f
+RMDIR		:=	/bin/rm -Rf
+
+MAKEFLAGS	+= --no-print-directory
+
+$O%.o: $S%.c
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 all:
-	$(COMPIL) $(FLAGS) $(SRCS) -o $(NAME)
+	@$(MAKE) $(NAME)
+
+lib: $(LIBOBJ)
+	$(CC) $(LIBFLAGS) $(LIBOBJ) -o $(LIBNAME)
+
+$(NAME): lib $(OBJ)
+	$(CC) $(LDFLAGS) $(OBJ) -o $@ $(LDLIBS)
+
+test: lib
+	python3 $T
 
 clean:
-	
+	$(RMDIR) $(wildcard $(NAME).dSYM)
+	$(RMDIR) $O
 
-fclean:
-	/bin/rm $(NAME)
-	make -C libft fclean
+fclean: clean
+	$(RM) $(NAME) $(LIBNAME)
 
-re: fclean all
+re: fclean
+	@$(MAKE)
 
-.PHONY: all bonus clean fclean re Cub3D
+.PHONY: all lib test clean fclean re
+
+-include $(OBJ:.o=.d)
