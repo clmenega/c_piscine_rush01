@@ -38,7 +38,7 @@ lib: $(LIBOBJ)
 $(NAME): lib $(OBJ)
 	$(CC) $(LDFLAGS) $(OBJ) -o $@ $(LDLIBS)
 
-test: lib
+test: $(NAME)
 	python3 $T
 
 clean:
